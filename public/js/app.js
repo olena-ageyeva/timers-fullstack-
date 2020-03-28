@@ -1,11 +1,24 @@
 class TimerDashboard extends React.Component{
+    state={
+        timers:[]
+    }
+
+    componentDidMount(){
+        this.setState({
+            timers: [
+                {title: 'Learn React', project: 'Web Domination', elapsed: '8986300', runningSince: null},
+                {title: 'Learn extreme ironing', project: 'Web Domination', elapsed: '3890985', runningSince: null}
+            ]
+        })
+    }
+
     render(){
         return(
             
             <div className='ui three column centered grid'>
-                <div class='column'>
-                    <EditableTimerList />
-                    <ToggleableTimerForm isOpen={true}/>        
+                <div className='column'>
+                    <EditableTimerList timers={this.state.timers} />
+                    <ToggleableTimerForm />        
                 </div>
             </div>
             
@@ -15,22 +28,25 @@ class TimerDashboard extends React.Component{
 
 class EditableTimerList extends React.Component{    
     render(){
-        const timer1={title: 'Learn React', project: 'Web Domination', elapsed: '8986300', runningSince: null}
-        const timer2={title: 'Learn extreme ironing', project: 'Web Domination', elapsed: '3890985', runningSince: null}
+        const timers=this.props.timers.map((timer,index)=><EditableTimer key={'timer-'+index} timer={timer} />)        
         return(
             <div id="timers">
-                <EditableTimer timer={timer1} editFormOpen={false}/>
-                <EditableTimer timer={timer2} editFormOpen={true}/>
+               {timers}
             </div>
         )
     }
 }
 
 class EditableTimer extends React.Component{    
+    state={
+        isOpen: false
+    }
+
     render(){        
         const {timer}=this.props
-        return(this.props.editFormOpen 
-            ? <TimerForm title={timer.title} project={timer.project}/>
+        console.log("timer", this.props, timer)
+        return(this.state.isOpen 
+            ? <TimerForm title={timer.title} project={timer.project}/>  
             : <Timer timer={timer} />)        
     }
 }
@@ -93,9 +109,12 @@ class Timer extends React.Component{
 }
 
 class ToggleableTimerForm extends React.Component{
+    state={
+        isOpen: false
+    }
     render(){
         return (
-            this.props.isOpen
+            this.state.isOpen
             ? <TimerForm />
             : <div className='ui basic content center aligned segment'>
                 <button  className='ui basic button icon'> 
