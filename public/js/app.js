@@ -3,18 +3,21 @@ class TimerDashboard extends React.Component{
         timers:[]
     }
 
-    componentDidMount(){
-        this.setState({
-            timers: [
-                {id:1, title: 'Learn React', project: 'Web Domination', elapsed: 5456099, runningSince: Date.now()},
-                {id:2, title: 'Learn extreme ironing', project: 'Web Domination', elapsed: 3890985, runningSince: null}
-            ]
-        })
-    }
+ 
+    componentDidMount() {
+        this.loadTimersFromServer();
+        setInterval(this.loadTimersFromServer, 5000);
+      }
 
-    handleCreate=(timer)=>{        
-        const newTimer=helpers.newTimer(timer)
-        this.setState({timers: this.state.timers.concat(newTimer)})
+    loadTimersFromServer = () => {
+        client.getTimers((serverTimers) => (
+            this.setState({ timers: serverTimers })
+          )
+        );
+      };
+
+    handleCreate=(timer)=>{      
+        this.createTimer(timer)          
     }
 
     handleEdit=(timer)=>{        
@@ -25,29 +28,41 @@ class TimerDashboard extends React.Component{
         this.deleteTimer(id)
     }
 
+    createTimer=(timer)=>{
+        const newTimer=helpers.newTimer(timer)
+        this.setState({timers: this.state.timers.concat(newTimer)})
+        client.createTimer(timer)
+    }
+
     deleteTimer=(id)=>{
         const newTimers=this.state.timers.filter(item=>item.id!==id)
         this.setState({timers: newTimers})
+        client.deleteTimer({id: id})
     }
 
     updateTimers=(timer)=>{
         const newTimers=this.state.timers.map(item=>item.id===timer.id ? timer : item)
         this.setState({timers: newTimers})
+        client.updateTimer(timer)
+
     }
 
     handleStart=(id)=>{
-        const newTimers=this.state.timers.map(item=> item.id==id ? Object.assign({}, item, {runningSince: Date.now()}) : item )
-        this.setState({timers: newTimers})  
+        const now=Date.now()
+        const newTimers=this.state.timers.map(item=> item.id==id ? Object.assign({}, item, {runningSince: now}) : item )
+        this.setState({timers: newTimers}) 
+        client.startTimer({id: id, start: now}) 
         
     }
 
     handleStop=(id)=>{
+        const now=Date.now()
         const newTimers=this.state.timers.map(item=> 
             item.id==id 
-            ? Object.assign({}, item, {elapsed:Date.now()-item.runningSince+item.elapsed,runningSince: null}) 
+            ? Object.assign({}, item, {elapsed:now-item.runningSince+item.elapsed,runningSince: null}) 
             : item )
-        this.setState({timers: newTimers})  
-        
+        this.setState({timers: newTimers}) 
+        client.stopTimer({id: id, stop: now})         
     }
 
     render(){
